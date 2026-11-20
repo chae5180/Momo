@@ -23,8 +23,20 @@ android {
         targetSdkVersion appAndroidTargetSDK
     }
 
+    //[Momo mod] fixed debug signing key, so a newly built APK installs over the previous one
+    //(keeping your saves). This is a throwaway test key with a public password, not for store release.
+    signingConfigs {
+        debug {
+            storeFile file('momo-debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
     buildTypes {
         debug {
+            signingConfig signingConfigs.debug
             applicationIdSuffix ".indev"
             versionNameSuffix '-INDEV'
             dependencies {
