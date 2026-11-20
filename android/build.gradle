@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         manifestPlaceholders = [appName:appName]
-        applicationId appPackageName
+        applicationId appPackageName + '.momo' //[Momo mod] installs alongside the original game
 
         versionCode appVersionCode
         versionName appVersionName
