@@ -235,6 +235,7 @@ public class Dungeon {
 		initialVersion = version = Game.versionCode;
 		challenges = SPDSettings.challenges();
 		mobsToChampion = 1;
+		ModChallenges.reset();
 
 		Actor.clear();
 		Actor.resetNextID();
@@ -633,6 +634,7 @@ public class Dungeon {
 			bundle.put( DAILY_REPLAY, dailyReplay );
 			bundle.put( LAST_PLAYED, lastPlayed = Game.realTime);
 			bundle.put( CHALLENGES, challenges );
+			ModChallenges.storeInBundle( bundle );
 			bundle.put( MOBS_TO_CHAMPION, mobsToChampion );
 			bundle.put( HERO, hero );
 			bundle.put( DEPTH, depth );
@@ -740,6 +742,7 @@ public class Dungeon {
 		Toolbar.swappedQuickslots = false;
 
 		Dungeon.challenges = bundle.getInt( CHALLENGES );
+		ModChallenges.restoreFromBundle( bundle );
 		Dungeon.mobsToChampion = bundle.getFloat( MOBS_TO_CHAMPION );
 		
 		Dungeon.level = null;
@@ -930,6 +933,12 @@ public class Dungeon {
 		for (int i = t; i <= b; i++) {
 			BArray.or( level.visited, level.heroFOV, pos, width, level.visited );
 			pos+=level.width();
+		}
+
+		//improved explore challenge: the hero's cell counts as examined, unless they're flying over it
+		if (isChallenged(Challenges.IMPROVED_EXPLORE)){
+			if (!hero.flying) ModChallenges.markExamined(hero.pos);
+			GameScene.updateExploreMarkers(l, t, r, b);
 		}
 
 		//always visit adjacent tiles, even if they aren't seen

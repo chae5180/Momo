@@ -110,6 +110,14 @@ public class DwarfKing extends Mob {
 
 	private float summonCooldown = 0;
 	private float abilityCooldown = 0;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "summon", summonCooldown);
+		addCooldown(out, "ability", abilityCooldown);
+	}
 	private final int MIN_COOLDOWN = Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 8 : 10;
 	private final int MAX_COOLDOWN = Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 10 : 14;
 

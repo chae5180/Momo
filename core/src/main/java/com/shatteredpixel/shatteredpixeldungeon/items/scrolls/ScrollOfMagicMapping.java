@@ -22,7 +22,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ModChallenges;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
@@ -71,6 +73,11 @@ public class ScrollOfMagicMapping extends Scroll {
 			}
 		}
 		GameScene.updateFog();
+
+		//improved explore challenge: no secrets remain after mapping
+		if (Dungeon.isChallenged(Challenges.IMPROVED_EXPLORE)){
+			ModChallenges.markAllExamined();
+		}
 		
 		GLog.i( Messages.get(this, "layout") );
 		if (noticed) {

@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ModChallenges;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClericArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
@@ -737,7 +738,7 @@ public class Generator {
 					}
 				}
 
-				return ((Item) Reflection.newInstance(itemCls)).random();
+				return ModChallenges.processGeneratedFood(((Item) Reflection.newInstance(itemCls)).random());
 		}
 	}
 
@@ -765,12 +766,12 @@ public class Generator {
 				}
 			}
 
-			return ((Item) Reflection.newInstance(itemCls)).random();
+			return ModChallenges.processGeneratedFood(((Item) Reflection.newInstance(itemCls)).random());
 		}
 	}
 	
 	public static Item random( Class<? extends Item> cl ) {
-		return Reflection.newInstance(cl).random();
+		return ModChallenges.processGeneratedFood(Reflection.newInstance(cl).random());
 	}
 
 	public static Armor randomArmor(){

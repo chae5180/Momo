@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ModChargeTracker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
@@ -84,6 +85,10 @@ public abstract class Wand extends Item {
 	public float partialCharge = 0f;
 	
 	protected Charger charger;
+
+	public Charger charger(){
+		return charger;
+	}
 	
 	public boolean curChargeKnown = false;
 	
@@ -309,6 +314,8 @@ public abstract class Wand extends Item {
 		if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.BATTLEMAGE){
 			desc += "\n\n" + Messages.get(this, "bmage_desc");
 		}
+
+		desc += ModChargeTracker.wandInfo(this);
 
 		return desc;
 	}
@@ -859,6 +866,25 @@ public abstract class Wand extends Item {
 		
 		public Wand wand(){
 			return Wand.this;
+		}
+
+		//same as the logic in recharge(), but without side-effects. Used by the improved charge challenge
+		public float chargePerTurn(){
+			if (curCharges >= maxCharges || target == null || target.buff(MagicImmune.class) != null){
+				return 0;
+			}
+			int missingCharges = Math.max(0, maxCharges - curCharges);
+			float turnsToCharge = (float) (BASE_CHARGE_DELAY
+					+ (SCALING_CHARGE_ADDITION * Math.pow(scalingFactor, missingCharges)));
+			float gain = 0;
+			if (Regeneration.regenOn())
+				gain += (1f/turnsToCharge) * RingOfEnergy.wandChargeMultiplier(target);
+			for (Recharging bonus : target.buffs(Recharging.class)){
+				if (bonus != null && bonus.remainder() > 0f) {
+					gain += CHARGE_BUFF_BONUS * bonus.remainder();
+				}
+			}
+			return gain;
 		}
 
 		public void gainCharge(float charge){

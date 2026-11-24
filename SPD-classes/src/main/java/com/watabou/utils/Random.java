@@ -48,6 +48,11 @@ public class Random {
 		generators.push( new java.util.Random() );
 	}
 
+	//pushes a specific generator, e.g. a deterministic one for evaluating min/max rolls
+	public static synchronized void pushGenerator( java.util.Random generator ){
+		generators.push( generator );
+	}
+
 	public static synchronized void pushGenerator( long seed ){
 		generators.push( new java.util.Random( scrambleSeed(seed) ) );
 	}

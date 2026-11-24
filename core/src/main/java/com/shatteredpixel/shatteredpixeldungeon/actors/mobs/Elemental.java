@@ -113,6 +113,13 @@ public abstract class Elemental extends Mob {
 	}
 	
 	protected int rangedCooldown = Random.NormalIntRange( 3, 5 );
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		if (rangedCooldown < 10000) addCooldown(out, "ranged", rangedCooldown);
+	}
 	
 	@Override
 	protected boolean act() {

@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import com.watabou.noosa.ColorBlock;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
@@ -65,6 +68,14 @@ public class StatusPane extends Component {
 
 	private Image exp;
 	private BitmapText expText;
+
+	//improved food challenge: satiety bar below the exp bar
+	private boolean showSatiety;
+	private ColorBlock satietyBg;
+	private ColorBlock satiety;
+	private BitmapText satietyText;
+	private int lastSatiety = -1;
+	public static final int SATIETY_BAR_HEIGHT_LARGE = 5;
 
 	private int lastLvl = -1;
 
@@ -170,6 +181,22 @@ public class StatusPane extends Component {
 		expText.alpha(0.6f);
 		add(expText);
 
+		showSatiety = Dungeon.isChallenged(Challenges.IMPROVED_FOOD);
+
+		satietyBg = new ColorBlock(1, 1, 0xFF2B1D0E);
+		satietyBg.visible = showSatiety;
+		add( satietyBg );
+
+		satiety = new ColorBlock(1, 1, 0xFFD9963A);
+		satiety.visible = showSatiety;
+		add( satiety );
+
+		satietyText = new BitmapText(PixelScene.pixelFont);
+		satietyText.hardlight( 0xFFE8C0 );
+		satietyText.alpha(0.8f);
+		satietyText.visible = showSatiety;
+		add( satietyText );
+
 		level = new BitmapText( PixelScene.pixelFont);
 		level.hardlight( 0xFFFFAA );
 		add( level );
@@ -222,6 +249,14 @@ public class StatusPane extends Component {
 			expText.y = exp.y;
 			PixelScene.align(expText);
 
+			satietyBg.x = satiety.x = exp.x;
+			satietyBg.y = satiety.y = exp.y + 7;
+			satietyBg.size(128, SATIETY_BAR_HEIGHT_LARGE);
+			satiety.size(128, SATIETY_BAR_HEIGHT_LARGE);
+			satietyText.scale.set(PixelScene.align(0.5f));
+			satietyText.y = satiety.y + (SATIETY_BAR_HEIGHT_LARGE - (satietyText.baseLine()+satietyText.scale.y))/2f;
+			lastSatiety = -1;
+
 			heroInfoOnBar.setRect(heroInfo.right(), y + 19, 130, 20);
 
 			//little extra for 14th buff
@@ -269,6 +304,15 @@ public class StatusPane extends Component {
 			expText.y = exp.y + (exp.height - (expText.baseLine()+expText.scale.y))/2f;
 			expText.y -= 0.001f; //prefer to be slightly higher
 			PixelScene.align(expText);
+
+			satietyBg.x = satiety.x = exp.x;
+			satietyBg.y = satiety.y = exp.y + 4;
+			satietyBg.size(17 + heroPaneExtraWidth, 3);
+			satiety.size(17 + heroPaneExtraWidth, 3);
+			satietyText.scale.set(PixelScene.align(0.5f));
+			satietyText.x = satiety.x + 1;
+			satietyText.y = satiety.y + (3 - (satietyText.baseLine()+satietyText.scale.y))/2f;
+			lastSatiety = -1;
 
 			heroInfoOnBar.setRect(heroInfo.right(), y, 50, 9);
 
@@ -357,6 +401,32 @@ public class StatusPane extends Component {
 			expText.text(Dungeon.hero.exp + "/" + Dungeon.hero.maxExp());
 		}
 
+		if (showSatiety) {
+			Hunger hunger = Dungeon.hero.buff(Hunger.class);
+			int sat = (int)Hunger.STARVING - (hunger != null ? hunger.hunger() : 0);
+			sat = (int)GameMath.gate(0, sat, Hunger.STARVING);
+			if (sat != lastSatiety) {
+				lastSatiety = sat;
+				float fullWidth = satietyBg.width();
+				satiety.size(fullWidth * sat / Hunger.STARVING, satiety.height());
+				if (sat <= Hunger.STARVING - Hunger.HUNGRY) {
+					satiety.color(sat == 0 ? 0xFFAA2222 : 0xFFCC6622);
+				} else {
+					satiety.color(0xFFD9963A);
+				}
+				if (large) {
+					//pixel font only supports latin characters, so just numbers here
+					satietyText.text(sat + "/" + (int) Hunger.STARVING);
+					satietyText.measure();
+					satietyText.x = satiety.x + (fullWidth - satietyText.width()) / 2f;
+				} else {
+					satietyText.text(Integer.toString(sat));
+					satietyText.measure();
+				}
+				PixelScene.align(satietyText);
+			}
+		}
+
 		if (Dungeon.hero.lvl != lastLvl) {
 
 			if (lastLvl != -1) {
@@ -403,6 +473,9 @@ public class StatusPane extends Component {
 		hpText.alpha(0.6f*value);
 		exp.alpha(value);
 		if (expText != null) expText.alpha(0.6f*value);
+		satietyBg.alpha(value);
+		satiety.alpha(value);
+		satietyText.alpha(0.8f*value);
 		level.alpha(value);
 		compass.alpha(value);
 		busy.alpha(value);

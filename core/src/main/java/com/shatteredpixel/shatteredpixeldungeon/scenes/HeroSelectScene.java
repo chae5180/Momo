@@ -234,8 +234,9 @@ public class HeroSelectScene extends PixelScene {
 		}
 
 		if (!Badges.isUnlocked(Badges.Badge.VICTORY) && !DeviceCompat.isDebug()){
-			Dungeon.challenges = 0;
-			SPDSettings.challenges(0);
+			//mod challenges don't affect score, and so are available before the first win
+			SPDSettings.challenges(SPDSettings.challenges() & Challenges.MOD_MASK);
+			Dungeon.challenges = SPDSettings.challenges();
 			SPDSettings.customSeed("");
 		}
 
@@ -798,16 +799,10 @@ public class HeroSelectScene extends PixelScene {
 			challengeButton = new StyledButton(Chrome.Type.BLANK, Messages.get(WndChallenges.class, "title"), 6){
 				@Override
 				protected void onClick() {
-					if (!Badges.isUnlocked(Badges.Badge.VICTORY) && !DeviceCompat.isDebug()){
-						ShatteredPixelDungeon.scene().addToFront( new WndTitledMessage(
-								Icons.get(Icons.CHALLENGE_GREY),
-								Messages.get(WndChallenges.class, "title"),
-								Messages.get(HeroSelectScene.class, "challenges_nowin")
-						));
-						return;
-					}
+					//before the first win, only the mod (non-scoring) challenges can be toggled
+					boolean canScoreChallenge = Badges.isUnlocked(Badges.Badge.VICTORY) || DeviceCompat.isDebug();
 
-					ShatteredPixelDungeon.scene().addToFront(new WndChallenges(SPDSettings.challenges(), true) {
+					ShatteredPixelDungeon.scene().addToFront(new WndChallenges(SPDSettings.challenges(), true, canScoreChallenge) {
 						public void onBackPressed() {
 							super.onBackPressed();
 							icon(Icons.get(SPDSettings.challenges() > 0 ? Icons.CHALLENGE_COLOR : Icons.CHALLENGE_GREY));
@@ -929,7 +924,8 @@ public class HeroSelectScene extends PixelScene {
 							for (int i = 0; i < chals; i++){
 								mask += chalMasks.remove(0);
 							}
-							SPDSettings.challenges(mask);
+							SPDSettings.challenges(mask | (SPDSettings.challenges() & Challenges.MOD_MASK));
+							mask = SPDSettings.challenges();
 							challengeButton.icon(Icons.get(SPDSettings.challenges() > 0 ? Icons.CHALLENGE_COLOR : Icons.CHALLENGE_GREY));
 							ShatteredPixelDungeon.scene().addToFront(new WndChallenges(mask, false));
 						}

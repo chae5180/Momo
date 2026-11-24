@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ModChallenges;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -106,7 +107,9 @@ import com.watabou.utils.Reflection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 public abstract class Mob extends Char {
 
@@ -263,6 +266,10 @@ public abstract class Mob extends Char {
 	protected boolean act() {
 		
 		super.act();
+
+		if (Dungeon.isChallenged(Challenges.IMPROVED_CHARGE)){
+			trackAbilityCooldowns();
+		}
 		
 		boolean justAlerted = alerted;
 		alerted = false;
@@ -1134,6 +1141,60 @@ public abstract class Mob extends Char {
 	
 	protected Object loot = null;
 	protected float lootChance = 0;
+
+	//used by the improved combat challenge
+	public Object lootObject(){
+		return loot;
+	}
+
+	// ***** ability cooldowns, used by the improved charge challenge *****
+
+	//subclasses add their ability cooldowns here, as name -> turns remaining
+	public void abilityCooldowns( LinkedHashMap<String, Float> out ){
+	}
+
+	protected static void addCooldown( LinkedHashMap<String, Float> out, String key, float turnsLeft ){
+		out.put(Messages.get(ModChallenges.class, "cd_" + key), Math.max(0, turnsLeft));
+	}
+
+	//the largest value seen for each cooldown since it was last reset, for progress display
+	private HashMap<String, Float> cooldownMax = new HashMap<>();
+	private HashMap<String, Float> cooldownLast = new HashMap<>();
+
+	public void trackAbilityCooldowns(){
+		LinkedHashMap<String, Float> cds = new LinkedHashMap<>();
+		abilityCooldowns(cds);
+		for (String name : cds.keySet()){
+			float cur = cds.get(name);
+			Float last = cooldownLast.get(name);
+			Float max = cooldownMax.get(name);
+			//cooldown went up, so it was reset (or we're seeing it for the first time)
+			if (last == null || max == null || cur > last || cur > max){
+				cooldownMax.put(name, cur);
+			}
+			cooldownLast.put(name, cur);
+		}
+	}
+
+	public String abilityCooldownInfo(){
+		trackAbilityCooldowns();
+		LinkedHashMap<String, Float> cds = new LinkedHashMap<>();
+		abilityCooldowns(cds);
+		if (cds.isEmpty()) return "";
+		StringBuilder info = new StringBuilder("\n\n" + Messages.get(ModChallenges.class, "cd_title"));
+		for (String name : cds.keySet()){
+			float cur = cds.get(name);
+			info.append("\n- ").append(Messages.capitalize(name)).append(": ");
+			if (cur <= 0){
+				info.append(Messages.get(ModChallenges.class, "cd_ready"));
+			} else {
+				float max = cooldownMax.containsKey(name) ? cooldownMax.get(name) : cur;
+				int progress = max > 0 ? Math.round(100f * (1f - cur/max)) : 100;
+				info.append(Messages.get(ModChallenges.class, "cd_left", (int)Math.ceil(cur), progress));
+			}
+		}
+		return info.toString();
+	}
 	
 	@SuppressWarnings("unchecked")
 	public Item createLoot() {

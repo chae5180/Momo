@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ModChargeTracker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
@@ -364,6 +365,7 @@ public class MeleeWeapon extends Weapon {
 		//the mage's staff has no ability as it can only be gained by the mage
 		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.DUELIST && !(this instanceof MagesStaff)){
 			info += "\n\n" + abilityInfo();
+			info += ModChargeTracker.weaponInfo();
 		}
 		
 		return info;
@@ -477,6 +479,27 @@ public class MeleeWeapon extends Weapon {
 		public void detach() {
 			super.detach();
 			ActionIndicator.clearAction(this);
+		}
+
+		//same as the logic in act(), but without side-effects. Used by the improved charge challenge
+		public float chargePerTurn(){
+			if (charges >= chargeCap()) return 0;
+			float gain = 0;
+			if (Regeneration.regenOn()){
+				float chargeToGain = 1/(60f-1.5f*(chargeCap()-charges));
+				if (Dungeon.hero.subClass == HeroSubClass.CHAMPION){
+					chargeToGain *= 1.5f;
+				}
+				if (Dungeon.hero.buff(RingOfForce.BrawlersStance.class) != null){
+					chargeToGain *= 0.50f;
+				}
+				gain += chargeToGain;
+			}
+			int points = ((Hero)target).pointsInTalent(Talent.WEAPON_RECHARGING);
+			if (points > 0 && target.buff(Recharging.class) != null || target.buff(ArtifactRecharge.class) != null){
+				gain += 1/(20f - 5f*points);
+			}
+			return gain;
 		}
 
 		public int chargeCap(){

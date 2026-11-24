@@ -115,6 +115,13 @@ public class DM300 extends Mob {
 	private int turnsSinceLastAbility = -1;
 	private int abilityCooldown = Random.NormalIntRange(MIN_COOLDOWN, MAX_COOLDOWN);
 
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		if (turnsSinceLastAbility >= 0) addCooldown(out, "ability", abilityCooldown - turnsSinceLastAbility);
+	}
+
 	private int lastAbility = 0;
 	private static final int NONE = 0;
 	private static final int GAS = 1;

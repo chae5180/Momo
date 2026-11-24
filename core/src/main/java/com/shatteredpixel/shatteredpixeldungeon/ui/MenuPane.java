@@ -118,11 +118,11 @@ public class MenuPane extends Component {
 		};
 		add(depthButton);
 
-		if (Challenges.activeChallenges() > 0){
+		if (Dungeon.challenges != 0){
 			challengeIcon = Icons.get(Icons.CHAL_COUNT);
 			add(challengeIcon);
 
-			challengeText = new BitmapText( Integer.toString( Challenges.activeChallenges() ), PixelScene.pixelFont);
+			challengeText = new BitmapText( Integer.toString( Challenges.allActiveChallenges(Dungeon.challenges) ), PixelScene.pixelFont);
 			challengeText.hardlight( 0xCACFC2 );
 			challengeText.measure();
 			add( challengeText );

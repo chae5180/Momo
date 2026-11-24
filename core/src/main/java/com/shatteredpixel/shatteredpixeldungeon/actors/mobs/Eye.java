@@ -85,6 +85,13 @@ public class Eye extends Mob {
 	private Ballistica beam;
 	private int beamTarget = -1;
 	private int beamCooldown;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "beam", beamCooldown);
+	}
 	public boolean beamCharged;
 
 	@Override

@@ -80,6 +80,13 @@ public class CrystalSpire extends Mob {
 	}
 
 	private float abilityCooldown;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "ability", abilityCooldown);
+	}
 	private static final int ABILITY_CD = 15;
 
 	private ArrayList<ArrayList<Integer>> targetedCells = new ArrayList<>();

@@ -89,6 +89,13 @@ public class DM200 extends Mob {
 
 	private int ventCooldown = 0;
 
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "vent", ventCooldown);
+	}
+
 	private static final String VENT_COOLDOWN = "vent_cooldown";
 
 	@Override

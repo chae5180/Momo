@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.artifacts;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ModChargeTracker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -60,6 +61,12 @@ public class Artifact extends KindofMisc {
 
 	//used by some artifacts to keep track of duration of effects or cooldowns to use.
 	protected int cooldown = 0;
+
+	//accessors used by the improved charge challenge
+	public int chargeAmount(){ return charge; }
+	public float partialChargeAmount(){ return partialCharge; }
+	public int chargeCapAmount(){ return chargeCap; }
+	public int cooldownLeft(){ return cooldown; }
 
 	@Override
 	public boolean doEquip( final Hero hero ) {
@@ -180,7 +187,7 @@ public class Artifact extends KindofMisc {
 			return super.info() + "\n\n" + Messages.get(Artifact.class, "not_cursed");
 			
 		} else {
-			return super.info();
+			return super.info() + ModChargeTracker.artifactInfo(this);
 			
 		}
 	}

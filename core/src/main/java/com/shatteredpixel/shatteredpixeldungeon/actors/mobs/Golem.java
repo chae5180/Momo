@@ -100,6 +100,14 @@ public class Golem extends Mob {
 	private int selfTeleCooldown = 0;
 	private int enemyTeleCooldown = 0;
 
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "tele_self", selfTeleCooldown);
+		addCooldown(out, "tele_enemy", enemyTeleCooldown);
+	}
+
 	private static final String TELEPORTING = "teleporting";
 	private static final String SELF_COOLDOWN = "self_cooldown";
 	private static final String ENEMY_COOLDOWN = "enemy_cooldown";

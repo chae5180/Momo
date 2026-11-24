@@ -135,6 +135,13 @@ public class RipperDemon extends Mob {
 	private int leapPos = -1;
 	private float leapCooldown = 0;
 
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "leap", leapCooldown);
+	}
+
 	public class Hunting extends Mob.Hunting {
 
 		@Override

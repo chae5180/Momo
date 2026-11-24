@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ModMobInfo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -35,7 +38,8 @@ public class WndInfoMob extends WndTitledMessage {
 	
 	public WndInfoMob( Mob mob ) {
 
-		super( new MobTitle( mob ), mob.info() );
+		super( new MobTitle( mob ), mob.info() + ModMobInfo.info( mob )
+				+ (Dungeon.isChallenged(Challenges.IMPROVED_CHARGE) ? mob.abilityCooldownInfo() : "") );
 		
 	}
 	

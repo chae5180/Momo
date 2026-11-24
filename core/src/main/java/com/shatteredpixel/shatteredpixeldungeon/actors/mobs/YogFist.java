@@ -81,6 +81,13 @@ public abstract class YogFist extends Mob {
 	}
 
 	private float rangedCooldown;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "ranged", rangedCooldown);
+	}
 	protected boolean canRangedInMelee = true;
 
 	protected void incrementRangedCooldown(){

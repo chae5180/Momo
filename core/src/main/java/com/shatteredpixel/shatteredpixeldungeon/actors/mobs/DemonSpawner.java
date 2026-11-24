@@ -77,6 +77,13 @@ public class DemonSpawner extends Mob {
 
 	private float spawnCooldown = 0;
 
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "spawn", spawnCooldown);
+	}
+
 	//pre-v3.3.0 , leftover from when these could record their spawn on act
 	public boolean spawnRecorded = false;
 

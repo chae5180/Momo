@@ -152,6 +152,8 @@ public abstract class Level implements Bundlable {
 	
 	public int[] map;
 	public boolean[] visited;
+	//cells which the hero has stepped on or searched, used by the improved explore challenge
+	public boolean[] examined;
 	public boolean[] mapped;
 	public boolean[] discoverable;
 
@@ -202,6 +204,7 @@ public abstract class Level implements Bundlable {
 	private static final String HEIGHT      = "height";
 	private static final String MAP			= "map";
 	private static final String VISITED		= "visited";
+	private static final String EXAMINED	= "examined";
 	private static final String MAPPED		= "mapped";
 	private static final String TRANSITIONS	= "transitions";
 	private static final String LOCKED      = "locked";
@@ -257,6 +260,7 @@ public abstract class Level implements Bundlable {
 			}
 			
 			if (Dungeon.depth > 1) {
+				int baseViewDistance = viewDistance;
 				//50% chance of getting a level feeling
 				//~7.15% chance for each feeling
 				switch (Random.Int( 14 )) {
@@ -296,6 +300,16 @@ public abstract class Level implements Bundlable {
 							feeling = Feeling.NONE;
 						}
 				}
+
+				//huge dungeon challenge: every regular floor (except 1 and 26) is a large floor
+				//this is applied after the regular roll so that levelgen RNG stays consistent
+				if (Dungeon.isChallenged(Challenges.HUGE_DUNGEON)
+						&& Dungeon.depth != 26
+						&& feeling != Feeling.LARGE){
+					viewDistance = baseViewDistance;
+					feeling = Feeling.LARGE;
+					addItemToSpawn(Generator.random(Generator.Category.FOOD));
+				}
 			}
 		}
 		
@@ -334,6 +348,7 @@ public abstract class Level implements Bundlable {
 		Arrays.fill( map, feeling == Level.Feeling.CHASM ? Terrain.CHASM : Terrain.WALL );
 		
 		visited     = new boolean[length];
+		examined    = new boolean[length];
 		mapped      = new boolean[length];
 		
 		heroFOV     = new boolean[length];
@@ -390,6 +405,10 @@ public abstract class Level implements Bundlable {
 		map		= bundle.getIntArray( MAP );
 
 		visited	= bundle.getBooleanArray( VISITED );
+		examined = bundle.contains( EXAMINED ) ? bundle.getBooleanArray( EXAMINED ) : null;
+		if (examined == null || examined.length != visited.length){
+			examined = new boolean[visited.length];
+		}
 		mapped	= bundle.getBooleanArray( MAPPED );
 
 		transitions = new ArrayList<>();
@@ -488,6 +507,7 @@ public abstract class Level implements Bundlable {
 		bundle.put( HEIGHT, height );
 		bundle.put( MAP, map );
 		bundle.put( VISITED, visited );
+		bundle.put( EXAMINED, examined );
 		bundle.put( MAPPED, mapped );
 		bundle.put( TRANSITIONS, transitions );
 		bundle.put( LOCKED, locked );

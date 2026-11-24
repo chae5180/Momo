@@ -51,6 +51,13 @@ import java.util.ArrayList;
 public class Succubus extends Mob {
 
 	private int blinkCooldown = 0;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "blink", blinkCooldown);
+	}
 	
 	{
 		spriteClass = SuccubusSprite.class;

@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.food;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ModChallenges;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
@@ -55,7 +56,7 @@ public class Pasty extends Food {
 	@Override
 	public void reset() {
 		super.reset();
-		switch(Holiday.getCurrentHoliday()){
+		switch(ModChallenges.pastyHoliday()){
 			case NONE: default:
 				image = ItemSpriteSheet.PASTY;
 				break;
@@ -91,7 +92,7 @@ public class Pasty extends Food {
 
 	@Override
 	protected void eatSFX() {
-		switch(Holiday.getCurrentHoliday()){
+		switch(ModChallenges.pastyHoliday()){
 			case PRIDE:
 			case NEW_YEARS:
 				Sample.INSTANCE.play( Assets.Sounds.DRINK );
@@ -102,14 +103,14 @@ public class Pasty extends Food {
 
 	@Override
 	protected void satisfy(Hero hero) {
-		if (Holiday.getCurrentHoliday() == Holiday.LUNAR_NEW_YEAR){
+		if (ModChallenges.pastyHoliday() == Holiday.LUNAR_NEW_YEAR){
 			//main item only clears 300 hunger on lunar new year...
 			energy = Hunger.HUNGRY;
 		}
 
 		super.satisfy(hero);
 		
-		switch(Holiday.getCurrentHoliday()){
+		switch(ModChallenges.pastyHoliday()){
 			default:
 				break; //do nothing extra
 			case LUNAR_NEW_YEAR:
@@ -173,7 +174,7 @@ public class Pasty extends Food {
 
 	@Override
 	public String name() {
-		switch(Holiday.getCurrentHoliday()){
+		switch(ModChallenges.pastyHoliday()){
 			case NONE: default:
 				return super.name();
 			case LUNAR_NEW_YEAR:
@@ -199,7 +200,7 @@ public class Pasty extends Food {
 
 	@Override
 	public String desc() {
-		switch(Holiday.getCurrentHoliday()){
+		switch(ModChallenges.pastyHoliday()){
 			case NONE: default:
 				return super.desc();
 			case LUNAR_NEW_YEAR:

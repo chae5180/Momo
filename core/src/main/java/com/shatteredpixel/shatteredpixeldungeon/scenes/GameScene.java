@@ -86,6 +86,7 @@ import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTerrainTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTileSheet;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonWallsTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.ExploreMarkersTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.FogOfWar;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.GridTileMap;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.RaisedTerrainTilemap;
@@ -176,6 +177,9 @@ public class GameScene extends PixelScene {
 
 	private MenuPane menu;
 	private StatusPane status;
+
+	private ExploreMarkersTilemap exploreFloorMarkers;
+	private ExploreMarkersTilemap exploreWallMarkers;
 
 	private BossHealthBar boss;
 
@@ -294,6 +298,9 @@ public class GameScene extends PixelScene {
 		terrainFeatures = new TerrainFeaturesTilemap(Dungeon.level.plants, Dungeon.level.traps);
 		terrain.add(terrainFeatures);
 
+		exploreFloorMarkers = new ExploreMarkersTilemap(false);
+		terrain.add(exploreFloorMarkers);
+
 		customTerrain = new Group();
 		terrain.add(customTerrain);
 
@@ -342,6 +349,10 @@ public class GameScene extends PixelScene {
 
 		wallBlocking = new WallBlockingTilemap();
 		add (wallBlocking);
+
+		//drawn above wall blocking so markers on side walls stay visible
+		exploreWallMarkers = new ExploreMarkersTilemap(true);
+		add(exploreWallMarkers);
 
 		add( emitters );
 		add( effects );
@@ -485,7 +496,9 @@ public class GameScene extends PixelScene {
 		StatusPane.hpBarMaxWidth = hpBarMaxWidth;
 		StatusPane.buffBarRowMaxWidths = buffBarRowLimits;
 		StatusPane.buffBarRowAdjusts = buffBarRowAdjusts;
-		status.setRect(insets.left, uiSize > 0 ? uiCamera.height-39-insets.bottom : screentop, uiCamera.width - insets.left - insets.right, 0 );
+		//with the improved food challenge the large status pane is raised to make room for the satiety bar
+		int statusLift = Dungeon.isChallenged(Challenges.IMPROVED_FOOD) ? StatusPane.SATIETY_BAR_HEIGHT_LARGE : 0;
+		status.setRect(insets.left, uiSize > 0 ? uiCamera.height-39-statusLift-insets.bottom : screentop, uiCamera.width - insets.left - insets.right, 0 );
 		add(status);
 
 		if (uiSize < 2 && largeInsetTop != 0) {
@@ -1383,8 +1396,32 @@ public class GameScene extends PixelScene {
 			scene.terrainFeatures.map(Dungeon.level.map, Dungeon.level.width() );
 			scene.raisedTerrain.map(Dungeon.level.map, Dungeon.level.width() );
 			scene.walls.map(Dungeon.level.map, Dungeon.level.width() );
+			updateExploreMarkers();
 		}
 		updateFog();
+	}
+
+	//improved explore challenge markers
+	public static void updateExploreMarkers() {
+		if (scene != null && scene.exploreFloorMarkers != null) {
+			scene.exploreFloorMarkers.updateMap();
+			scene.exploreWallMarkers.updateMap();
+		}
+	}
+
+	public static void updateExploreMarkers( int cell ) {
+		if (scene != null && scene.exploreFloorMarkers != null) {
+			scene.exploreFloorMarkers.updateMapCell(cell);
+			scene.exploreWallMarkers.updateMapCell(cell);
+		}
+	}
+
+	//inclusive rectangle
+	public static void updateExploreMarkers( int left, int top, int right, int bottom ) {
+		if (scene != null && scene.exploreFloorMarkers != null) {
+			scene.exploreFloorMarkers.updateArea(left, top, right, bottom);
+			scene.exploreWallMarkers.updateArea(left, top, right, bottom);
+		}
 	}
 
 	//updates the whole map
@@ -1399,6 +1436,7 @@ public class GameScene extends PixelScene {
 			for (Tilemap cust : scene.customTilemaps){
 				cust.updateMap();
 			}
+			updateExploreMarkers();
 			updateFog();
 		}
 	}
@@ -1414,6 +1452,7 @@ public class GameScene extends PixelScene {
 			for (Tilemap cust : scene.customTilemaps){
 				cust.updateMapCell( cell );
 			}
+			updateExploreMarkers( cell );
 			//update adjacent cells too
 			updateFog( cell, 1 );
 		}
@@ -1428,6 +1467,7 @@ public class GameScene extends PixelScene {
 	public static void discoverTile( int pos, int oldValue ) {
 		if (scene != null) {
 			scene.tiles.discover( pos, oldValue );
+			updateExploreMarkers( pos );
 		}
 	}
 	

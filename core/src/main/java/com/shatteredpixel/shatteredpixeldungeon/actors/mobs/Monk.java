@@ -79,6 +79,13 @@ public class Monk extends Mob {
 	}
 	
 	protected float focusCooldown = 0;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "focus", focusCooldown);
+	}
 	
 	@Override
 	protected boolean act() {

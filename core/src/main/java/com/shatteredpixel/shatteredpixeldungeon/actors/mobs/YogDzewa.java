@@ -91,6 +91,14 @@ public class YogDzewa extends Mob {
 	private static final int MAX_ABILITY_CD = 15;
 
 	private float summonCooldown;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "summon", summonCooldown);
+		addCooldown(out, "ability", abilityCooldown);
+	}
 	private static final int MIN_SUMMON_CD = 10;
 	private static final int MAX_SUMMON_CD = 15;
 

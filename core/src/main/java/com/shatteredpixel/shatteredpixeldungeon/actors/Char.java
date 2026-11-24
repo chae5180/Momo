@@ -1376,6 +1376,29 @@ public abstract class Char extends Actor {
 	}
 	
 	protected final HashSet<Class> immunities = new HashSet<>();
+
+	//all current resistances and immunities, used by the improved combat challenge
+	public HashSet<Class> allResistances(){
+		HashSet<Class> resists = new HashSet<>(resistances);
+		for (Property p : properties()){
+			resists.addAll(p.resistances());
+		}
+		for (Buff b : buffs()){
+			resists.addAll(b.resistances());
+		}
+		return resists;
+	}
+
+	public HashSet<Class> allImmunities(){
+		HashSet<Class> immunes = new HashSet<>(immunities);
+		for (Property p : properties()){
+			immunes.addAll(p.immunities());
+		}
+		for (Buff b : buffs()){
+			immunes.addAll(b.immunities());
+		}
+		return immunes;
+	}
 	
 	public boolean isImmune(Class effect ){
 		HashSet<Class> immunes = new HashSet<>(immunities);

@@ -88,6 +88,13 @@ public class GnollGeomancer extends Mob {
 	}
 
 	private int abilityCooldown = Random.NormalIntRange(3, 5);
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "ability", abilityCooldown);
+	}
 	private boolean lastAbilityWasRockfall;
 
 	private int[] throwingRocksFromPos = null;

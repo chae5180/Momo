@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         manifestPlaceholders = [appName:appName]
-        applicationId appPackageName
+        applicationId appPackageName + appModIdSuffix
 
         versionCode appVersionCode
         versionName appVersionName
@@ -43,7 +43,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
             dependencies {
-                releaseImplementation project(':services:updates:githubUpdates')
+                //the mod doesn't check the original game's github releases for updates
+                releaseImplementation project(':services:updates:debugUpdates')
                 releaseImplementation project(':services:news:shatteredNews')
             }
         }

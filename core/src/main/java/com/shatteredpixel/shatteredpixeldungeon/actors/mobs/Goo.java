@@ -62,6 +62,16 @@ public class Goo extends Mob {
 	}
 
 	private int pumpedUp = 0;
+
+	//damage range without side-effects, used by the improved combat challenge
+	public int[] damageRangeForInfo(){
+		int min = 1;
+		int max = (HP*2 <= HT) ? 12 : 8;
+		if (pumpedUp > 0){
+			return new int[]{min*3, max*3};
+		}
+		return new int[]{min, max};
+	}
 	private int healInc = 1;
 
 	@Override

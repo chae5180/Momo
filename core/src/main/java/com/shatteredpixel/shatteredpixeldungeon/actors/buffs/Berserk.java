@@ -98,6 +98,16 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 		}
 	}
 
+	//used by the improved combat challenge, shield lost per turn while berserking
+	public float shieldDecayPerTurn(){
+		if (state != State.BERSERK || target.shielding() <= 0) return 0;
+		return (float)Math.ceil(target.shielding() * 0.025f) * HoldFast.buffDecayFactor(target);
+	}
+
+	public boolean isBerserking(){
+		return state == State.BERSERK;
+	}
+
 	@Override
 	public boolean act() {
 		if (state == State.BERSERK){

@@ -59,6 +59,13 @@ public class GnollSapper extends Mob {
 	private int partnerID = -1;
 
 	private int abilityCooldown = Random.NormalIntRange(4, 6);
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "ability", abilityCooldown);
+	}
 	private boolean lastAbilityWasRockfall = false;
 
 	public int throwingRockFromPos = -1;

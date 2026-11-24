@@ -441,6 +441,13 @@ public class Tengu extends Mob {
 	
 	//starts at 2, so one turn and then first ability
 	private int abilityCooldown = 2;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		if (abilityCooldown >= 0) addCooldown(out, "ability", abilityCooldown);
+	}
 	
 	private static final int BOMB_ABILITY    = 0;
 	private static final int FIRE_ABILITY    = 1;

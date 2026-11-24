@@ -220,6 +220,7 @@ public class SPDSettings extends GameSettings {
 	
 	public static final String KEY_LAST_CLASS	= "last_class";
 	public static final String KEY_CHALLENGES	= "challenges";
+	public static final String KEY_PASTY_VARIANT= "pasty_variant";
 	public static final String KEY_CUSTOM_SEED	= "custom_seed";
 	public static final String KEY_LAST_DAILY	= "last_daily";
 	public static final String KEY_INTRO		= "intro";
@@ -250,6 +251,15 @@ public class SPDSettings extends GameSettings {
 	
 	public static int challenges() {
 		return getInt( KEY_CHALLENGES, 0, 0, Challenges.MAX_VALUE );
+	}
+
+	//which item replaces pasties with the improved food challenge, as an ordinal of Holiday
+	public static void pastyVariant( int value ) {
+		put( KEY_PASTY_VARIANT, value );
+	}
+
+	public static int pastyVariant() {
+		return getInt( KEY_PASTY_VARIANT, 0, 0, com.shatteredpixel.shatteredpixeldungeon.utils.Holiday.values().length-1 );
 	}
 
 	public static void customSeed( String value ){

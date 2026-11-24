@@ -25,6 +25,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ModChallenges;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ModChargeTracker;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
@@ -838,6 +840,11 @@ public class Hero extends Char {
 		
 		//calls to dungeon.observe will also update hero's local FOV.
 		fieldOfView = Dungeon.level.heroFOV;
+
+		//improved charge challenge tracks cooldowns and charges
+		if (ModChargeTracker.active() && buff(ModChargeTracker.class) == null){
+			Buff.affect(this, ModChargeTracker.class);
+		}
 
 		if (buff(Endure.EndureTracker.class) != null){
 			buff(Endure.EndureTracker.class).endEnduring();
@@ -2544,6 +2551,11 @@ public class Hero extends Char {
 
 					if (foresight){
 						Dungeon.level.mapped[curr] = true;
+					}
+
+					//improved explore challenge, searched cells are examined
+					if (foresight || intentional){
+						ModChallenges.markExamined(curr);
 					}
 					
 					if (Dungeon.level.secret[curr]){

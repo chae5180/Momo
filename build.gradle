@@ -11,8 +11,11 @@ buildscript {
 allprojects {
 
     ext {
-        appName = 'Shattered Pixel Dungeon'
+        //mod name, kept separate so that saves and installs don't conflict with the original game
+        appName = 'Momo Pixel Dungeon'
         appPackageName = 'com.shatteredpixel.shatteredpixeldungeon'
+        //android application ID suffix, so the mod can be installed alongside the original game
+        appModIdSuffix = '.momo'
 
         //Full releases gets +2 on version code, needed for an F-Droid quirk
         appVersionCode = 922

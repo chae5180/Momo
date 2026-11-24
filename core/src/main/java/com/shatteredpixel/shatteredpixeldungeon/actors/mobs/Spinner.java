@@ -72,6 +72,13 @@ public class Spinner extends Mob {
 	}
 
 	private int webCoolDown = 0;
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "web", webCoolDown);
+	}
 	private int lastEnemyPos = -1;
 
 	private static final String WEB_COOLDOWN = "web_cooldown";

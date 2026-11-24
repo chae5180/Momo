@@ -145,6 +145,14 @@ public class VaultBossElemental extends Mob {
 
 	protected int envAttackCooldown = Random.NormalIntRange( 10, 15 );
 	protected int spAttackCooldown = Random.NormalIntRange( 6, 10 );
+
+	//improved charge challenge
+	@Override
+	public void abilityCooldowns( java.util.LinkedHashMap<String, Float> out ){
+		super.abilityCooldowns(out);
+		addCooldown(out, "env", envAttackCooldown);
+		addCooldown(out, "special", spAttackCooldown);
+	}
 	protected int spTargetCell = -1;
 
 	protected int lastEnemyPos = -1; //used for tracking targeting on some attacks

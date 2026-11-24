@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blocking;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -46,6 +49,23 @@ public class Barrier extends ShieldBuff {
 	public void setShield(int shield) {
 		super.setShield(shield);
 		if (shielding() == shield) partialLostShield = 0;
+	}
+
+	//used by the improved combat challenge
+	public float decayPerTurn(){
+		return Math.min(1f, shielding()/20f) * HoldFast.buffDecayFactor(target);
+	}
+
+	public float decayProgress(){
+		return partialLostShield;
+	}
+
+	@Override
+	public float iconFadePercent() {
+		if (Dungeon.isChallenged(Challenges.IMPROVED_COMBAT)){
+			return Math.max(0, Math.min(1, partialLostShield));
+		}
+		return super.iconFadePercent();
 	}
 
 	@Override
