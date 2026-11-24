@@ -158,13 +158,16 @@ public class ModChallenges {
 		if (!Dungeon.isChallenged(Challenges.IMPROVED_EXPLORE)) return -1;
 		Level level = Dungeon.level;
 		if (level == null || level.examined == null || cell < 0 || cell >= level.length()) return -1;
+		//boss floors and floor 26 have no secrets to find
+		if (Dungeon.bossLevel() || Dungeon.depth == 26) return -1;
 		if (level.examined[cell]) return -1;
 		if (!level.visited[cell] && !level.mapped[cell]) return -1;
 
-		//only regular floor and wall tiles get markers (including secrets that look like them)
+		//only plain floor and wall tiles get markers (including secrets, which look identical to them)
+		//decorated floors (e.g. moss) never get markers, hidden traps always look like plain floor
 		int terr = level.map[cell];
 		boolean isWall = terr == Terrain.WALL || terr == Terrain.WALL_DECO || terr == Terrain.SECRET_DOOR;
-		boolean isFloor = terr == Terrain.EMPTY || terr == Terrain.EMPTY_DECO || terr == Terrain.SECRET_TRAP;
+		boolean isFloor = terr == Terrain.EMPTY || terr == Terrain.SECRET_TRAP;
 		if (walls ? !isWall : !isFloor) return -1;
 
 		return Dungeon.depth > 20 ? ExploreMarkersTilemap.BLUE_CROSS : ExploreMarkersTilemap.RED_CROSS;
