@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Goo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -196,8 +197,10 @@ public class ModMobInfo {
 		}
 
 		//accuracy and evasion, including champion modifiers
-		float accEvaFactor = 1f;
-		float meleeFactor = 1f;
+		//includes the ascension challenge, and rabble / elite forces challenges
+		float statFactor = AscensionChallenge.statModifier(mob);
+		float accEvaFactor = statFactor;
+		float meleeFactor = statFactor;
 		float dmgTakenFactor = 1f;
 		for (ChampionEnemy champ : mob.buffs(ChampionEnemy.class)){
 			accEvaFactor *= champ.evasionAndAccuracyFactor();
@@ -239,6 +242,10 @@ public class ModMobInfo {
 				return mob.drRoll();
 			}
 		});
+		if (statFactor != 1f){
+			dr[0] = Math.round(dr[0]*statFactor);
+			dr[1] = Math.round(dr[1]*statFactor);
+		}
 		sb.append("\n").append(Messages.get(ModMobInfo.class, "armor", range(dr)));
 
 		//damage reduction (multiplicative, from champion buffs)

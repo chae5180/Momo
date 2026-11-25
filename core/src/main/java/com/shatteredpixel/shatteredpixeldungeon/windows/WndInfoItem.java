@@ -26,6 +26,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ItemSlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
+import com.watabou.noosa.ui.Component;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 
 public class WndInfoItem extends Window {
@@ -127,5 +129,41 @@ public class WndInfoItem extends Window {
 		add( info );
 
 		resize( width, (int)(info.bottom() + 2) );
+
+		//WndUseItem adds buttons below the text
+		makeScrollable(title, info, width, this instanceof WndUseItem ? 60 : 10);
 	}
+
+	//mod: very long text (e.g. detailed info from mod challenges) scrolls instead of going off screen
+	private ScrollPane infoPane;
+
+	private void makeScrollable( Component above, RenderedTextBlock text, int width, float reservedBelow ){
+		float maxHeight = PixelScene.uiCamera.height * 0.85f - above.bottom() - reservedBelow;
+		if (text.height() <= maxHeight) return;
+
+		remove(text);
+		resize( width, (int)(above.bottom() + GAP + maxHeight + 2) );
+
+		infoPane = new ScrollPane(new Component());
+		add(infoPane);
+		infoPane.setRect(0, above.bottom() + GAP, width, maxHeight);
+		Component content = infoPane.content();
+		text.setPos(0, 0);
+		content.add(text);
+		content.setSize(width, text.height() + 2);
+		infoPane.setRect(0, above.bottom() + GAP, width, maxHeight);
+	}
+
+	@Override
+	public void resize(int w, int h) {
+		super.resize(w, h);
+		if (infoPane != null) infoPane.setRect(infoPane.left(), infoPane.top(), infoPane.width(), infoPane.height());
+	}
+
+	@Override
+	public void offset(int xOffset, int yOffset) {
+		super.offset(xOffset, yOffset);
+		if (infoPane != null) infoPane.setRect(infoPane.left(), infoPane.top(), infoPane.width(), infoPane.height());
+	}
+
 }

@@ -43,15 +43,20 @@ public class Challenges {
 	public static final int IMPROVED_COMBAT		= 2048;
 	public static final int IMPROVED_EXPLORE	= 4096;
 	public static final int HUGE_DUNGEON		= 8192;
+	public static final int RABBLE				= 16384;
+	public static final int ELITE_FORCES		= 32768;
+	public static final int IMPROVED_RARITY		= 65536;
+	public static final int IMPROVED_MAGIC		= 131072;
 
-	public static final int MAX_VALUE           = 16383;
+	public static final int MAX_VALUE           = 262143;
 	//number of challenges which affect score (used for randomizing and score multipliers)
 	public static final int MAX_CHALS           = 9;
 
 	//all challenges which affect score
 	public static final int SCORING_MASK		= 511;
 	//all challenges which do not affect score
-	public static final int MOD_MASK			= IMPROVED_FOOD | IMPROVED_CHARGE | IMPROVED_COMBAT | IMPROVED_EXPLORE | HUGE_DUNGEON;
+	public static final int MOD_MASK			= IMPROVED_FOOD | IMPROVED_CHARGE | IMPROVED_COMBAT | IMPROVED_EXPLORE | HUGE_DUNGEON
+														| RABBLE | ELITE_FORCES | IMPROVED_RARITY | IMPROVED_MAGIC;
 
 	public static final String[] NAME_IDS = {
 			"champion_enemies",
@@ -67,12 +72,17 @@ public class Challenges {
 			"improved_charge",
 			"improved_combat",
 			"improved_explore",
-			"huge_dungeon"
+			"huge_dungeon",
+			"rabble",
+			"elite_forces",
+			"improved_rarity",
+			"improved_magic"
 	};
 
 	public static final int[] MASKS = {
 			CHAMPION_ENEMIES, STRONGER_BOSSES, NO_FOOD, NO_ARMOR, NO_HEALING, NO_HERBALISM, SWARM_INTELLIGENCE, DARKNESS, NO_SCROLLS,
-			IMPROVED_FOOD, IMPROVED_CHARGE, IMPROVED_COMBAT, IMPROVED_EXPLORE, HUGE_DUNGEON
+			IMPROVED_FOOD, IMPROVED_CHARGE, IMPROVED_COMBAT, IMPROVED_EXPLORE, HUGE_DUNGEON,
+			RABBLE, ELITE_FORCES, IMPROVED_RARITY, IMPROVED_MAGIC
 	};
 
 	public static boolean isScoring( int mask ){

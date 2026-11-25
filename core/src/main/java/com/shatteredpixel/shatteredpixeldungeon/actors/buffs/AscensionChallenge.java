@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ModChallenges;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -103,6 +104,11 @@ public class AscensionChallenge extends Buff {
 	}
 
 	public static float statModifier(Char ch){
+		//rabble and elite forces challenges also scale enemy stats
+		return ascensionStatModifier(ch) * ModChallenges.mobStatFactor(ch);
+	}
+
+	private static float ascensionStatModifier(Char ch){
 		if (Dungeon.hero == null || Dungeon.hero.buff(AscensionChallenge.class) == null){
 			return 1;
 		}

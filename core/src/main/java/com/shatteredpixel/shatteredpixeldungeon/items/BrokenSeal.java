@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
+import com.shatteredpixel.shatteredpixeldungeon.ModEnchantInfo;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo;
@@ -93,8 +94,10 @@ public class BrokenSeal extends Item {
 	}
 
 	public int maxShield( int armTier, int armLvl ){
-		// 5-15, based on equip tier and iron will
-		return 3 + 2*armTier + Dungeon.hero.pointsInTalent(Talent.IRON_WILL);
+		// 5-16, based on equip tier and iron will
+		//mod: iron will gives +2/+3 instead of +1/+2
+		int ironWill = Dungeon.hero.pointsInTalent(Talent.IRON_WILL);
+		return 3 + 2*armTier + (ironWill > 0 ? ironWill + 1 : 0);
 	}
 
 	@Override
@@ -193,6 +196,7 @@ public class BrokenSeal extends Item {
 		if (glyph != null){
 			info += "\n\n" + Messages.get(this, "inscribed", glyph.name());
 			info += " " + glyph.desc();
+			info += ModEnchantInfo.armorInfo(glyph, null);
 		}
 		return info;
 	}

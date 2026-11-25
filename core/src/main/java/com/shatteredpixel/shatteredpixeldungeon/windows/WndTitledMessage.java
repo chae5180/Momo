@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.ui.Component;
@@ -66,7 +67,42 @@ public class WndTitledMessage extends Window {
 		bringToFront(titlebar);
 
 		resize( width, (int)text.bottom() + 2 );
+
+		makeScrollable(titlebar, text, width, 10);
 	}
+
+	//mod: very long text (e.g. detailed info from mod challenges) scrolls instead of going off screen
+	private ScrollPane infoPane;
+
+	private void makeScrollable( Component above, RenderedTextBlock text, int width, float reservedBelow ){
+		float maxHeight = PixelScene.uiCamera.height * 0.85f - above.bottom() - reservedBelow;
+		if (text.height() <= maxHeight) return;
+
+		remove(text);
+		resize( width, (int)(above.bottom() + 2*GAP + maxHeight + 2) );
+
+		infoPane = new ScrollPane(new Component());
+		add(infoPane);
+		infoPane.setRect(0, above.bottom() + 2*GAP, width, maxHeight);
+		Component content = infoPane.content();
+		text.setPos(0, 0);
+		content.add(text);
+		content.setSize(width, text.height() + 2);
+		infoPane.setRect(0, above.bottom() + 2*GAP, width, maxHeight);
+	}
+
+	@Override
+	public void resize(int w, int h) {
+		super.resize(w, h);
+		if (infoPane != null) infoPane.setRect(infoPane.left(), infoPane.top(), infoPane.width(), infoPane.height());
+	}
+
+	@Override
+	public void offset(int xOffset, int yOffset) {
+		super.offset(xOffset, yOffset);
+		if (infoPane != null) infoPane.setRect(infoPane.left(), infoPane.top(), infoPane.width(), infoPane.height());
+	}
+
 
 	protected boolean useHighlighting(){
 		return true;

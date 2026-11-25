@@ -25,7 +25,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.MobSpawner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -67,14 +73,17 @@ public class ModChallenges {
 	public static void reset(){
 		pastyVariant = SPDSettings.pastyVariant();
 		pastyReplaceChance = 0;
+		normalSpawnsSinceRare = 0;
 	}
 
 	private static final String PASTY_VARIANT   = "mod_pasty_variant";
 	private static final String PASTY_CHANCE    = "mod_pasty_chance";
+	private static final String RARE_COUNTER    = "mod_rare_counter";
 
 	public static void storeInBundle( Bundle bundle ){
 		bundle.put( PASTY_VARIANT, pastyVariant );
 		bundle.put( PASTY_CHANCE, pastyReplaceChance );
+		bundle.put( RARE_COUNTER, normalSpawnsSinceRare );
 	}
 
 	public static void restoreFromBundle( Bundle bundle ){
@@ -85,6 +94,7 @@ public class ModChallenges {
 			pastyVariant = 0;
 		}
 		pastyReplaceChance = bundle.getFloat( PASTY_CHANCE );
+		normalSpawnsSinceRare = bundle.getInt( RARE_COUNTER );
 	}
 
 	//the 'holiday' which determines what pasties look like and do
@@ -151,6 +161,92 @@ public class ModChallenges {
 		return info;
 	}
 
+	// ***** Rabble / Elite Forces *****
+
+	//whether a character is a regular enemy, affected by the rabble and elite forces challenges
+	public static boolean isRegularEnemy( Char ch ){
+		if (!(ch instanceof Mob) || ch instanceof NPC) return false;
+		//neutral enemies (e.g. hidden mimics) count, allies don't
+		if (ch.alignment == Char.Alignment.ALLY) return false;
+		if (Char.hasProp(ch, Char.Property.BOSS) || Char.hasProp(ch, Char.Property.MINIBOSS)) return false;
+		//quest enemies: vault quest enemies, and anything in a quest branch (e.g. the blacksmith's mine)
+		if (ch.getClass().getName().contains(".mobs.quest.")) return false;
+		if (Dungeon.branch != 0) return false;
+		return true;
+	}
+
+	//multiplier to health, damage, accuracy, evasion, and armor of regular enemies
+	public static float mobStatFactor( Char ch ){
+		if (!isRegularEnemy(ch)) return 1f;
+		float factor = 1f;
+		if (Dungeon.isChallenged(Challenges.RABBLE))        factor *= 0.5f;
+		if (Dungeon.isChallenged(Challenges.ELITE_FORCES))  factor *= 2.3f;
+		return factor;
+	}
+
+	//multiplier to the number of regular enemies on a floor
+	public static float mobCountFactor(){
+		float factor = 1f;
+		if (Dungeon.isChallenged(Challenges.RABBLE))        factor *= 2f;
+		if (Dungeon.isChallenged(Challenges.ELITE_FORCES))  factor *= 0.5f;
+		return factor;
+	}
+
+	public static int scaleMobCount( int count ){
+		float factor = mobCountFactor();
+		if (factor == 1f || count <= 0) return count;
+		return Math.max(1, Math.round(count * factor));
+	}
+
+	//multiplier to enemy spawning frequency
+	public static float spawnRateFactor(){
+		float factor = 1f;
+		if (Dungeon.isChallenged(Challenges.RABBLE))        factor *= 1.5f;
+		if (Dungeon.isChallenged(Challenges.ELITE_FORCES))  factor *= 0.5f;
+		return factor;
+	}
+
+	// ***** Improved Rarity *****
+
+	//number of regular enemies spawned since the last rare variant
+	public static int normalSpawnsSinceRare = 0;
+
+	public static float baseRareChance(){
+		return 1/50f * RatSkull.exoticChanceMultiplier();
+	}
+
+	//the extra chance for the next enemy to be a rare variant, which is added to the base chance
+	public static float bonusRareChance(){
+		return baseRareChance() * normalSpawnsSinceRare;
+	}
+
+	private static Class<? extends Mob> rareAltOf( Class<? extends Mob> cls ){
+		if (cls == Elemental.FireElemental.class
+				|| cls == Elemental.FrostElemental.class
+				|| cls == Elemental.ShockElemental.class){
+			return Elemental.ChaosElemental.class;
+		}
+		return MobSpawner.RARE_ALTS.get(cls);
+	}
+
+	//called whenever a level picks a mob from its rotation to spawn
+	public static Class<? extends Mob> processSpawnedMob( Class<? extends Mob> cls ){
+		if (!Dungeon.isChallenged(Challenges.IMPROVED_RARITY) || cls == null){
+			return cls;
+		}
+		if (MobSpawner.RARE_ALTS.containsValue(cls)){
+			normalSpawnsSinceRare = 0;
+			return cls;
+		}
+		Class<? extends Mob> alt = rareAltOf(cls);
+		if (alt != null && Random.Float() < bonusRareChance()){
+			normalSpawnsSinceRare = 0;
+			return alt;
+		}
+		normalSpawnsSinceRare++;
+		return cls;
+	}
+
 	// ***** Improved Explore *****
 
 	//which marker (if any) to draw over a cell. Returns -1 for no marker
@@ -164,9 +260,9 @@ public class ModChallenges {
 		if (!level.visited[cell] && !level.mapped[cell]) return -1;
 
 		//only plain floor and wall tiles get markers (including secrets, which look identical to them)
-		//decorated floors (e.g. moss) never get markers, hidden traps always look like plain floor
+		//decorated floors (e.g. moss) and walls never get markers, secrets always look like plain floor/walls
 		int terr = level.map[cell];
-		boolean isWall = terr == Terrain.WALL || terr == Terrain.WALL_DECO || terr == Terrain.SECRET_DOOR;
+		boolean isWall = terr == Terrain.WALL || terr == Terrain.SECRET_DOOR;
 		boolean isFloor = terr == Terrain.EMPTY || terr == Terrain.SECRET_TRAP;
 		if (walls ? !isWall : !isFloor) return -1;
 

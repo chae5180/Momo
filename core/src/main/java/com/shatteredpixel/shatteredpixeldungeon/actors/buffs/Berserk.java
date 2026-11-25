@@ -175,6 +175,11 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 		ActionIndicator.clearAction(this);
 	}
 
+	//mod: berserker takes 2% less damage per 10% rage
+	public float damageTakenFactor(){
+		return 1f - 0.2f*Math.max(0, Math.min(1f, power));
+	}
+
 	public float enchantFactor(float chance){
 		return chance + ((Math.min(1f, power) * 0.15f) * ((Hero) target).pointsInTalent(Talent.ENRAGED_CATALYST));
 	}
@@ -371,9 +376,11 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 		float dispDamage = ((int)damageFactor(10000) / 100f) - 100f;
 		switch (state){
 			case NORMAL: default:
-				return Messages.get(this, "angered_desc", Math.floor(power * 100f), dispDamage, currentShieldBoost());
+				return Messages.get(this, "angered_desc", Math.floor(power * 100f), dispDamage, currentShieldBoost())
+						+ "\n" + Messages.get(this, "dmg_reduction", Math.round((1f - damageTakenFactor())*100f));
 			case BERSERK:
-				return Messages.get(this, "berserk_desc", shielding());
+				return Messages.get(this, "berserk_desc", shielding())
+						+ "\n\n" + Messages.get(this, "dmg_reduction", Math.round((1f - damageTakenFactor())*100f));
 			case RECOVERING:
 				if (levelRecovery > 0){
 					return Messages.get(this, "recovering_desc") + "\n\n" + Messages.get(this, "recovering_desc_levels", levelRecovery);

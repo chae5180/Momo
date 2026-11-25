@@ -57,6 +57,7 @@ public class WndChallenges extends Window {
 
 	private int pastyVariant;
 	private PastyButton pastyButton;
+	private CursedListButton cursedListButton;
 
 	public WndChallenges( int checked, boolean editable ) {
 		this( checked, editable, editable );
@@ -101,6 +102,9 @@ public class WndChallenges extends Window {
 				if (pastyButton != null && pastyButton.active && pastyButton.inside(x, y)){
 					pastyButton.click();
 				}
+				if (cursedListButton != null && cursedListButton.active && cursedListButton.inside(x, y)){
+					cursedListButton.click();
+				}
 			}
 		};
 		add(pane);
@@ -133,7 +137,7 @@ public class WndChallenges extends Window {
 				pos += 2;
 			}
 
-			ChallengeBox cb = new ChallengeBox( Messages.titleCase(Messages.get(Challenges.class, challenge)) );
+			ChallengeBox cb = new ChallengeBox( Messages.titleCase(Messages.get(Challenges.class, challenge)), mask );
 			cb.checked( (checked & mask) != 0 );
 			cb.active = scoring ? this.scoringEditable : this.editable;
 			cb.setRect( 0, pos, WIDTH-16, BTN_HEIGHT );
@@ -169,6 +173,15 @@ public class WndChallenges extends Window {
 				content.add(pastyButton);
 				pastyButton.refresh();
 				pos = pastyButton.bottom() + GAP;
+			}
+
+			//display toggle for the cursed wand effect list. This is a display setting, so it can always be changed
+			if (mask == Challenges.IMPROVED_MAGIC){
+				cursedListButton = new CursedListButton();
+				cursedListButton.setRect(8, pos, WIDTH-8, BTN_HEIGHT);
+				content.add(cursedListButton);
+				cursedListButton.refresh();
+				pos = cursedListButton.bottom() + GAP;
 			}
 		}
 
@@ -213,16 +226,55 @@ public class WndChallenges extends Window {
 
 	}
 
-	private static class ChallengeBox extends CheckBox {
+	private class ChallengeBox extends CheckBox {
 
-		public ChallengeBox(String label) {
+		private final int mask;
+
+		public ChallengeBox(String label, int mask) {
 			super(label);
+			this.mask = mask;
 		}
 
 		public void click(){
 			onClick();
 		}
 
+		@Override
+		protected void onClick() {
+			super.onClick();
+			//rabble and elite forces can't both be active
+			if (checked() && (mask == Challenges.RABBLE || mask == Challenges.ELITE_FORCES)){
+				int other = mask == Challenges.RABBLE ? Challenges.ELITE_FORCES : Challenges.RABBLE;
+				for (ChallengeBox box : boxes){
+					if (box.mask == other) box.checked(false);
+				}
+			}
+		}
+
+	}
+
+	private class CursedListButton extends RedButton {
+
+		public CursedListButton() {
+			super("", 6);
+		}
+
+		public void click(){
+			onClick();
+		}
+
+		public void refresh(){
+			text(Messages.get(WndChallenges.class, SPDSettings.cursedWandList() ? "cursed_list_on" : "cursed_list_off"));
+			icon(new ItemSprite(ItemSpriteSheet.WAND_MAGIC_MISSILE));
+			layout();
+		}
+
+		@Override
+		protected void onClick() {
+			super.onClick();
+			SPDSettings.cursedWandList(!SPDSettings.cursedWandList());
+			refresh();
+		}
 	}
 
 	private static Image pastyIcon( Holiday variant ){
