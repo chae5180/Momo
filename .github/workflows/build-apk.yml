@@ -16,7 +16,7 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - uses: android-actions/setup-android@v3
+      # the ubuntu runner image already includes the Android SDK (ANDROID_HOME)
 
       - name: Build release APK (unsigned)
         run: |
