@@ -26,12 +26,17 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ArmoredStatue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.PhantomPiranha;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.TormentedSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfFeatherFall;
+import java.util.HashSet;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.MobSpawner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -47,9 +52,6 @@ import com.watabou.utils.Random;
 public class ModChallenges {
 
 	// ***** Improved Food *****
-
-	//chance increase for the next ration to become a pasty, each time a ration is generated
-	public static final float PASTY_CHANCE_STEP = 0.2f;
 
 	//options for what replaces pasties. NONE means a regular pasty (which still respects real holidays)
 	public static final Holiday[] PASTY_VARIANTS = new Holiday[]{
@@ -67,23 +69,15 @@ public class ModChallenges {
 
 	//ordinal of the holiday whose food replaces pasties this run
 	public static int pastyVariant = 0;
-	//current chance for the next generated ration to be replaced by a pasty
-	public static float pastyReplaceChance = 0;
 
 	public static void reset(){
 		pastyVariant = SPDSettings.pastyVariant();
-		pastyReplaceChance = 0;
-		normalSpawnsSinceRare = 0;
 	}
 
 	private static final String PASTY_VARIANT   = "mod_pasty_variant";
-	private static final String PASTY_CHANCE    = "mod_pasty_chance";
-	private static final String RARE_COUNTER    = "mod_rare_counter";
 
 	public static void storeInBundle( Bundle bundle ){
 		bundle.put( PASTY_VARIANT, pastyVariant );
-		bundle.put( PASTY_CHANCE, pastyReplaceChance );
-		bundle.put( RARE_COUNTER, normalSpawnsSinceRare );
 	}
 
 	public static void restoreFromBundle( Bundle bundle ){
@@ -93,8 +87,6 @@ public class ModChallenges {
 		} else {
 			pastyVariant = 0;
 		}
-		pastyReplaceChance = bundle.getFloat( PASTY_CHANCE );
-		normalSpawnsSinceRare = bundle.getInt( RARE_COUNTER );
 	}
 
 	//the 'holiday' which determines what pasties look like and do
@@ -120,25 +112,6 @@ public class ModChallenges {
 		}
 	}
 
-	//called whenever an item is generated. Rations may be swapped out for pasties
-	public static Item processGeneratedFood( Item item ){
-		if (item == null
-				|| item.getClass() != Food.class
-				|| !Dungeon.isChallenged(Challenges.IMPROVED_FOOD)){
-			return item;
-		}
-
-		if (pastyReplaceChance > 0 && Random.Float() < pastyReplaceChance){
-			pastyReplaceChance = 0;
-			Pasty pasty = new Pasty();
-			pasty.quantity(item.quantity());
-			return pasty;
-		}
-
-		pastyReplaceChance = Math.min(1f, pastyReplaceChance + PASTY_CHANCE_STEP);
-		return item;
-	}
-
 	//how much hunger a food item will actually restore
 	public static int satietyValue( Food food ){
 		float value = food.energy;
@@ -154,11 +127,7 @@ public class ModChallenges {
 
 	public static String foodInfo( Food food ){
 		if (!Dungeon.isChallenged(Challenges.IMPROVED_FOOD)) return "";
-		String info = "\n\n" + Messages.get(ModChallenges.class, "food_satiety", satietyValue(food), (int)Hunger.STARVING);
-		if (food.getClass() == Food.class){
-			info += "\n" + pastyChanceInfo();
-		}
-		return info;
+		return "\n\n" + Messages.get(ModChallenges.class, "food_satiety", satietyValue(food), (int)Hunger.STARVING);
 	}
 
 	// ***** Rabble / Elite Forces *****
@@ -208,43 +177,43 @@ public class ModChallenges {
 
 	// ***** Improved Rarity *****
 
-	//number of regular enemies spawned since the last rare variant
-	public static int normalSpawnsSinceRare = 0;
-
-	public static float baseRareChance(){
-		return 1/50f * RatSkull.exoticChanceMultiplier();
+	//rare variants of regular enemies. Mimics are deliberately not included
+	private static final HashSet<Class<? extends Mob>> RARE_ENEMIES = new HashSet<>();
+	static {
+		RARE_ENEMIES.addAll(MobSpawner.RARE_ALTS.values());
+		RARE_ENEMIES.add(ArmoredStatue.class);
+		RARE_ENEMIES.add(PhantomPiranha.class);
+		RARE_ENEMIES.add(TormentedSpirit.class);
 	}
 
-	//the extra chance for the next enemy to be a rare variant, which is added to the base chance
-	public static float bonusRareChance(){
-		return baseRareChance() * normalSpawnsSinceRare;
+	public static final int RARE_AURA_COLOR = 0xFFDD33;
+
+	public static boolean isRareEnemy( Char ch ){
+		return ch != null && RARE_ENEMIES.contains(ch.getClass());
 	}
 
-	private static Class<? extends Mob> rareAltOf( Class<? extends Mob> cls ){
-		if (cls == Elemental.FireElemental.class
-				|| cls == Elemental.FrostElemental.class
-				|| cls == Elemental.ShockElemental.class){
-			return Elemental.ChaosElemental.class;
-		}
-		return MobSpawner.RARE_ALTS.get(cls);
+	//rare enemies glow yellow, unless they already have a champion aura
+	public static boolean showRareAura( Char ch ){
+		return Dungeon.isChallenged(Challenges.IMPROVED_RARITY)
+				&& isRareEnemy(ch)
+				&& ch.buff(ChampionEnemy.class) == null;
 	}
 
-	//called whenever a level picks a mob from its rotation to spawn
-	public static Class<? extends Mob> processSpawnedMob( Class<? extends Mob> cls ){
-		if (!Dungeon.isChallenged(Challenges.IMPROVED_RARITY) || cls == null){
-			return cls;
+	// ***** Improved Chasm *****
+
+	public static String chasmInfo( int cell ){
+		if (!Dungeon.isChallenged(Challenges.IMPROVED_CHASM) || Dungeon.hero == null || Dungeon.level == null) return "";
+		if (cell < 0 || cell >= Dungeon.level.length() || !Dungeon.level.pit[cell]) return "";
+		Hero hero = Dungeon.hero;
+		if (hero.buff(ElixirOfFeatherFall.FeatherBuff.class) != null){
+			return "\n\n" + Messages.get(ModChallenges.class, "chasm_feather");
 		}
-		if (MobSpawner.RARE_ALTS.containsValue(cls)){
-			normalSpawnsSinceRare = 0;
-			return cls;
-		}
-		Class<? extends Mob> alt = rareAltOf(cls);
-		if (alt != null && Random.Float() < bonusRareChance()){
-			normalSpawnsSinceRare = 0;
-			return alt;
-		}
-		normalSpawnsSinceRare++;
-		return cls;
+		//mirrors Chasm.heroLand()
+		int minDmg = hero.HP / 2;
+		int maxDmg = Math.max(hero.HP / 2, hero.HT / 4);
+		int bleed = Math.round(hero.HT / (6f + (6f*(hero.HP/(float)hero.HT))));
+		String dmg = minDmg == maxDmg ? Integer.toString(minDmg) : minDmg + "~" + maxDmg;
+		return "\n\n" + Messages.get(ModChallenges.class, "chasm_info", dmg, bleed, bleed*3);
 	}
 
 	// ***** Improved Explore *****
@@ -307,9 +276,5 @@ public class ModChallenges {
 		return "";
 	}
 
-	public static String pastyChanceInfo(){
-		return Messages.get(ModChallenges.class, "pasty_chance", Math.round(pastyReplaceChance*100),
-				pastyVariantName(pastyHoliday()));
-	}
 
 }

@@ -559,8 +559,7 @@ public abstract class Level implements Bundlable {
 			mobsToSpawn = MobSpawner.getMobRotation(Dungeon.depth);
 		}
 
-		//improved rarity challenge may swap in a rare variant
-		Mob m = Reflection.newInstance(ModChallenges.processSpawnedMob(mobsToSpawn.remove(0)));
+		Mob m = Reflection.newInstance(mobsToSpawn.remove(0));
 		ChampionEnemy.rollForChampion(m);
 		return m;
 	}

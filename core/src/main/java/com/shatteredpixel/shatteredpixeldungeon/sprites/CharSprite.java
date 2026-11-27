@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ModChallenges;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.effects.DarkBlock;
 import com.shatteredpixel.shatteredpixeldungeon.effects.EmoIcon;
@@ -163,6 +164,11 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		}
 
 		ch.updateSpriteState();
+
+		//improved rarity challenge
+		if (ModChallenges.showRareAura(ch)){
+			aura(ModChallenges.RARE_AURA_COLOR, 3);
+		}
 	}
 
 	@Override

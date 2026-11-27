@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import com.shatteredpixel.shatteredpixeldungeon.ModChallenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -182,6 +183,9 @@ public class WndInfoCell extends Window {
 			}
 		}
 		
+		//improved chasm challenge: fall damage
+		desc += ModChallenges.chasmInfo(cell);
+
 		info.text( desc.length() == 0 ? Messages.get(this, "nothing") : desc );
 		info.maxWidth(WIDTH);
 		info.setPos(titlebar.left(), titlebar.bottom() + 2*GAP);
