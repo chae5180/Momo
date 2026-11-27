@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -173,6 +174,46 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 			state = State.RECOVERING;
 		}
 		ActionIndicator.clearAction(this);
+	}
+
+	//mod: improved rage challenge, rage lost per turn at the current HP (as a fraction of max rage)
+	public float rageLossPerTurn(){
+		return GameMath.gate(0.1f, power, 1f) * 0.05f * (float)Math.pow((target.HP / (float) target.HT), 2);
+	}
+
+	//turns until rage runs out if HP stays the same, or -1 if it would take extremely long
+	private int turnsUntilRageGone(){
+		float p = power;
+		int turns = powerLossBuffer;
+		float hpFactor = 0.05f * (float)Math.pow((target.HP / (float) target.HT), 2);
+		if (hpFactor <= 0) return -1;
+		while (p > 0){
+			p -= GameMath.gate(0.1f, p, 1f) * hpFactor;
+			turns++;
+			if (turns > 9999) return -1;
+		}
+		return turns;
+	}
+
+	private String rageDecayInfo(){
+		if (!Dungeon.isChallenged(Challenges.IMPROVED_RAGE)) return "";
+		switch (state){
+			case NORMAL: default:
+				if (power <= 0) return "";
+				String info = "\n\n" + Messages.get(this, "rage_decay", String.format(java.util.Locale.ROOT, "%.2f", rageLossPerTurn()*100f));
+				if (powerLossBuffer > 0){
+					info += "\n" + Messages.get(this, "rage_buffer", powerLossBuffer);
+				}
+				int turns = turnsUntilRageGone();
+				if (turns > 0){
+					info += "\n" + Messages.get(this, "rage_gone", turns);
+				}
+				return info;
+			case BERSERK:
+				return "\n\n" + Messages.get(this, "rage_decay_berserk");
+			case RECOVERING:
+				return "";
+		}
 	}
 
 	//mod: berserker takes 2% less damage per 10% rage
@@ -377,10 +418,12 @@ public class Berserk extends ShieldBuff implements ActionIndicator.Action {
 		switch (state){
 			case NORMAL: default:
 				return Messages.get(this, "angered_desc", Math.floor(power * 100f), dispDamage, currentShieldBoost())
-						+ "\n" + Messages.get(this, "dmg_reduction", Math.round((1f - damageTakenFactor())*100f));
+						+ "\n" + Messages.get(this, "dmg_reduction", Math.round((1f - damageTakenFactor())*100f))
+						+ rageDecayInfo();
 			case BERSERK:
 				return Messages.get(this, "berserk_desc", shielding())
-						+ "\n\n" + Messages.get(this, "dmg_reduction", Math.round((1f - damageTakenFactor())*100f));
+						+ "\n\n" + Messages.get(this, "dmg_reduction", Math.round((1f - damageTakenFactor())*100f))
+						+ rageDecayInfo();
 			case RECOVERING:
 				if (levelRecovery > 0){
 					return Messages.get(this, "recovering_desc") + "\n\n" + Messages.get(this, "recovering_desc_levels", levelRecovery);
